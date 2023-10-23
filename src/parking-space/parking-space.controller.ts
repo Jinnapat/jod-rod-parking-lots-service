@@ -20,6 +20,11 @@ export class ParkingSpaceController {
     return this.parkingSpacesService.getParkingSpaces();
   }
 
+  @Get(':id')
+  getParkingSpaceByIdHandler(@Param('id') id) {
+    return this.parkingSpacesService.getParkingSpaceById(id);
+  }
+
   @Post()
   createParkingSpaceHandler(
     @Body('lat') lat,
@@ -37,6 +42,7 @@ export class ParkingSpaceController {
     @Body('lng') lng,
     @Body('name') name,
     @Body('totalParking') totalParking,
+    @Body('available') available,
   ) {
     this.parkingSpacesService.updateParkingSpace(
       id,
@@ -44,6 +50,7 @@ export class ParkingSpaceController {
       lng,
       name,
       totalParking,
+      available,
     );
   }
 

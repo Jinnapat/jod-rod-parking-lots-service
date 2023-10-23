@@ -20,6 +20,15 @@ export class ParkingSpaceService {
     return this.parkingSpaceCollection.find().toArray();
   }
 
+  async getParkingSpaceById(id: string) {
+    const findResult = await this.parkingSpaceCollection.findOne({
+      _id: new ObjectId(id),
+    });
+    if (!findResult)
+      throw new NotFoundException('No parking space with that id');
+    return findResult;
+  }
+
   async createParkingSpace(
     lat: number,
     lng: number,
