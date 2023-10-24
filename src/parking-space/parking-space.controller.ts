@@ -4,28 +4,28 @@ import {
   Param,
   Post,
   Get,
-  Put,
+  Patch,
   Delete,
 } from '@nestjs/common';
 import { ParkingSpaceService } from './parking-space.service';
 
-@Controller('parking_space')
+@Controller()
 export class ParkingSpaceController {
   constructor(private readonly parkingSpacesService: ParkingSpaceService) {
     this.parkingSpacesService.initialize();
   }
 
-  @Get()
+  @Get('getParkingSpaces')
   getParkingSpacesHandler() {
     return this.parkingSpacesService.getParkingSpaces();
   }
 
-  @Get(':id')
+  @Get('getParkingSpace/:id')
   getParkingSpaceByIdHandler(@Param('id') id) {
     return this.parkingSpacesService.getParkingSpaceById(id);
   }
 
-  @Post()
+  @Post('createParkingSpace')
   createParkingSpaceHandler(
     @Body('lat') lat,
     @Body('lng') lng,
@@ -35,7 +35,7 @@ export class ParkingSpaceController {
     this.parkingSpacesService.createParkingSpace(lat, lng, name, totalParking);
   }
 
-  @Put(':id')
+  @Patch('updateParkingSpace/:id')
   updateParkingSpaceHandler(
     @Param('id') id,
     @Body('lat') lat,
@@ -54,7 +54,7 @@ export class ParkingSpaceController {
     );
   }
 
-  @Delete(':id')
+  @Delete('deleteParkingSpace/:id')
   deleteParkingSpaceHandler(@Param('id') id) {
     this.parkingSpacesService.deleteParkingSpace(id);
   }
