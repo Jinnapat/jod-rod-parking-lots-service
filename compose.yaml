@@ -2,7 +2,7 @@ services:
   api:
     build: .
     ports:
-      - 3000:3000
+      - 4000:3000
     environment:
       MONGO_URL: mongodb://root:example@mongo:27017
   mongo:
@@ -11,5 +11,3 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - 27017:27017
