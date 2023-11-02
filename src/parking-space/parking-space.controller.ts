@@ -8,10 +8,16 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ParkingSpaceService } from './parking-space.service';
+import { GrpcMethod } from '@nestjs/microservices';
+import { Subject } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class ParkingSpaceController {
-  constructor(private readonly parkingSpacesService: ParkingSpaceService) {
+  constructor(
+    private readonly parkingSpacesService: ParkingSpaceService,
+    private readonly configService: ConfigService,
+  ) {
     this.parkingSpacesService.initialize();
   }
 
@@ -57,5 +63,18 @@ export class ParkingSpaceController {
   @Delete('deleteParkingSpace/:id')
   deleteParkingSpaceHandler(@Param('id') id) {
     this.parkingSpacesService.deleteParkingSpace(id);
+  }
+
+  @GrpcMethod('GetAvailableSpacesService', 'getAvailableSpaces')
+  getAvailableSpaces() {
+    const subject = new Subject();
+
+    setInterval(async () => {
+      const result = await this.parkingSpacesService.getParkingSpaces();
+      subject.next({ parkingSpaceList: result });
+    }, this.configService.get('REFEASH_DELAY_MS'));
+
+    const observable = subject.asObservable();
+    return observable;
   }
 }
