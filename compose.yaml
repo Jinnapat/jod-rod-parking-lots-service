@@ -3,6 +3,7 @@ services:
     build: .
     ports:
       - 4000:3000
+      - 4001:3001
     environment:
       MONGO_URL: mongodb://root:example@mongo:27017
       REFEASH_DELAY_MS: 2000
