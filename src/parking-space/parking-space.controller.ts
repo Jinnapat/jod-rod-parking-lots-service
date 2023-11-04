@@ -70,7 +70,12 @@ export class ParkingSpaceController {
     const subject = new Subject();
 
     setInterval(async () => {
-      const result = await this.parkingSpacesService.getParkingSpaces();
+      const dataFetchingResult =
+        await this.parkingSpacesService.getParkingSpaces();
+      const result = dataFetchingResult.map((parkingSpace) => ({
+        id: parkingSpace._id,
+        ...parkingSpace,
+      }));
       subject.next({ parkingSpaceList: result });
     }, this.configService.get('REFEASH_DELAY_MS'));
 
