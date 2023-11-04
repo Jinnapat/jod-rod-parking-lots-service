@@ -31,43 +31,43 @@ export class ParkingSpaceService {
   }
 
   async createParkingSpace(
-    lat: number,
-    lng: number,
+    lat: string,
+    lng: string,
     name: string,
-    totalParking: number,
+    totalParking: string,
   ) {
     await this.parkingSpaceCollection.insertOne({
-      lat,
-      lng,
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
       name,
-      totalParking,
+      totalParking: parseInt(totalParking),
       available: 0,
     });
   }
 
   async updateParkingSpace(
     id: string,
-    lat?: number,
-    lng?: number,
+    lat?: string,
+    lng?: string,
     name?: string,
-    totalParking?: number,
-    available?: number,
+    totalParking?: string,
+    available?: string,
   ) {
     const updatePartial = {};
     if (lat) {
-      updatePartial['lat'] = lat;
+      updatePartial['lat'] = parseFloat(lat);
     }
     if (lng) {
-      updatePartial['lng'] = lng;
+      updatePartial['lng'] = parseFloat(lng);
     }
     if (name) {
       updatePartial['name'] = name;
     }
     if (totalParking) {
-      updatePartial['totalParking'] = totalParking;
+      updatePartial['totalParking'] = parseInt(totalParking);
     }
     if (available) {
-      updatePartial['available'] = available;
+      updatePartial['available'] = parseInt(available);
     }
     const updateResult = await this.parkingSpaceCollection.updateOne(
       {
