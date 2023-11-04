@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MongoClient, Collection, ObjectId } from 'mongodb';
 import { ConfigService } from '@nestjs/config';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class ParkingSpaceService {
@@ -86,5 +87,20 @@ export class ParkingSpaceService {
     });
     if (deleteResult.deletedCount == 0)
       throw new NotFoundException('No parking space with that id');
+  }
+
+  observeParkingSpaces() {
+    const subject = new Subject();
+
+    setInterval(async () => {
+      const dataFetchingResult = await this.getParkingSpaces();
+      const result = dataFetchingResult.map((parkingSpace) => ({
+        id: parkingSpace._id,
+        ...parkingSpace,
+      }));
+      subject.next({ parkingSpaceList: result });
+    }, this.configService.get('REFEASH_DELAY_MS'));
+
+    return subject.asObservable();
   }
 }

@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ParkingSpaceService } from './parking-space.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import { Subject } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 
 @Controller()
@@ -22,27 +21,32 @@ export class ParkingSpaceController {
   }
 
   @Get('getParkingSpaces')
-  getParkingSpacesHandler() {
-    return this.parkingSpacesService.getParkingSpaces();
+  async getParkingSpacesHandler() {
+    return await this.parkingSpacesService.getParkingSpaces();
   }
 
   @Get('getParkingSpace/:id')
-  getParkingSpaceByIdHandler(@Param('id') id) {
-    return this.parkingSpacesService.getParkingSpaceById(id);
+  async getParkingSpaceByIdHandler(@Param('id') id) {
+    return await this.parkingSpacesService.getParkingSpaceById(id);
   }
 
   @Post('createParkingSpace')
-  createParkingSpaceHandler(
+  async createParkingSpaceHandler(
     @Body('lat') lat,
     @Body('lng') lng,
     @Body('name') name,
     @Body('totalParking') totalParking,
   ) {
-    this.parkingSpacesService.createParkingSpace(lat, lng, name, totalParking);
+    return await this.parkingSpacesService.createParkingSpace(
+      lat,
+      lng,
+      name,
+      totalParking,
+    );
   }
 
   @Patch('updateParkingSpace/:id')
-  updateParkingSpaceHandler(
+  async updateParkingSpaceHandler(
     @Param('id') id,
     @Body('lat') lat,
     @Body('lng') lng,
@@ -50,7 +54,7 @@ export class ParkingSpaceController {
     @Body('totalParking') totalParking,
     @Body('available') available,
   ) {
-    this.parkingSpacesService.updateParkingSpace(
+    return await this.parkingSpacesService.updateParkingSpace(
       id,
       lat,
       lng,
@@ -61,25 +65,12 @@ export class ParkingSpaceController {
   }
 
   @Delete('deleteParkingSpace/:id')
-  deleteParkingSpaceHandler(@Param('id') id) {
-    this.parkingSpacesService.deleteParkingSpace(id);
+  async deleteParkingSpaceHandler(@Param('id') id) {
+    return await this.parkingSpacesService.deleteParkingSpace(id);
   }
 
   @GrpcMethod('GetAvailableSpacesService', 'getAvailableSpaces')
   getAvailableSpaces() {
-    const subject = new Subject();
-
-    setInterval(async () => {
-      const dataFetchingResult =
-        await this.parkingSpacesService.getParkingSpaces();
-      const result = dataFetchingResult.map((parkingSpace) => ({
-        id: parkingSpace._id,
-        ...parkingSpace,
-      }));
-      subject.next({ parkingSpaceList: result });
-    }, this.configService.get('REFEASH_DELAY_MS'));
-
-    const observable = subject.asObservable();
-    return observable;
+    return this.parkingSpacesService.observeParkingSpaces();
   }
 }
