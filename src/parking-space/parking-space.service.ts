@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { MongoClient, Collection, ObjectId } from 'mongodb';
 import { ConfigService } from '@nestjs/config';
 import { Subject } from 'rxjs';
@@ -18,7 +22,23 @@ export class ParkingSpaceService {
   }
 
   async getParkingSpaces() {
-    return this.parkingSpaceCollection.find().toArray();
+    const dataFetchingResult = await this.parkingSpaceCollection
+      .find()
+      .toArray();
+    const result = dataFetchingResult.map(async (parkingSpace) => {
+      const activeCount = await this.getActiveReservations(
+        parkingSpace._id.toString(),
+      );
+      return {
+        id: parkingSpace._id,
+        lat: parkingSpace.lat,
+        lng: parkingSpace.lng,
+        name: parkingSpace.name,
+        totalParking: parkingSpace.totalParking,
+        available: parkingSpace.totalParking - activeCount,
+      };
+    });
+    return result;
   }
 
   async getParkingSpaceById(id: string) {
@@ -27,7 +47,17 @@ export class ParkingSpaceService {
     });
     if (!findResult)
       throw new NotFoundException('No parking space with that id');
-    return findResult;
+    const activeCount = await this.getActiveReservations(
+      findResult._id.toString(),
+    );
+    return {
+      id: findResult._id,
+      lat: findResult.lat,
+      lng: findResult.lng,
+      name: findResult.name,
+      totalParking: findResult.totalParking,
+      available: findResult.totalParking - activeCount,
+    };
   }
 
   async createParkingSpace(
@@ -41,7 +71,6 @@ export class ParkingSpaceService {
       lng: parseFloat(lng),
       name,
       totalParking: parseInt(totalParking),
-      available: 0,
     });
   }
 
@@ -51,7 +80,6 @@ export class ParkingSpaceService {
     lng?: string,
     name?: string,
     totalParking?: string,
-    available?: string,
   ) {
     const updatePartial = {};
     if (lat) {
@@ -65,9 +93,6 @@ export class ParkingSpaceService {
     }
     if (totalParking) {
       updatePartial['totalParking'] = parseInt(totalParking);
-    }
-    if (available) {
-      updatePartial['available'] = parseInt(available);
     }
     const updateResult = await this.parkingSpaceCollection.updateOne(
       {
@@ -94,13 +119,23 @@ export class ParkingSpaceService {
 
     setInterval(async () => {
       const dataFetchingResult = await this.getParkingSpaces();
-      const result = dataFetchingResult.map((parkingSpace) => ({
-        id: parkingSpace._id,
-        ...parkingSpace,
-      }));
-      subject.next({ parkingSpaceList: result });
+      subject.next({ parkingSpaceList: dataFetchingResult });
     }, this.configService.get('REFEASH_DELAY_MS'));
 
     return subject.asObservable();
+  }
+
+  private async getActiveReservations(parkingLotId: string) {
+    const getAvailableResult = await fetch(
+      this.configService.get('RESERVATION_SERVICE_URL') +
+        '/getActiveReservations/' +
+        parkingLotId,
+    );
+
+    if (getAvailableResult.status != 200)
+      throw new InternalServerErrorException();
+
+    const responseBody = await new Response(getAvailableResult.body).json();
+    return responseBody;
   }
 }

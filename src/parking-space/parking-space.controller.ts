@@ -9,14 +9,10 @@ import {
 } from '@nestjs/common';
 import { ParkingSpaceService } from './parking-space.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class ParkingSpaceController {
-  constructor(
-    private readonly parkingSpacesService: ParkingSpaceService,
-    private readonly configService: ConfigService,
-  ) {
+  constructor(private readonly parkingSpacesService: ParkingSpaceService) {
     this.parkingSpacesService.initialize();
   }
 
@@ -52,7 +48,6 @@ export class ParkingSpaceController {
     @Body('lng') lng,
     @Body('name') name,
     @Body('totalParking') totalParking,
-    @Body('available') available,
   ) {
     return await this.parkingSpacesService.updateParkingSpace(
       id,
@@ -60,7 +55,6 @@ export class ParkingSpaceController {
       lng,
       name,
       totalParking,
-      available,
     );
   }
 
