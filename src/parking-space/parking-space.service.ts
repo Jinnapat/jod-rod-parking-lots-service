@@ -25,19 +25,22 @@ export class ParkingSpaceService {
     const dataFetchingResult = await this.parkingSpaceCollection
       .find()
       .toArray();
-    const result = dataFetchingResult.map(async (parkingSpace) => {
-      const activeCount = await this.getActiveReservations(
-        parkingSpace._id.toString(),
-      );
-      return {
-        id: parkingSpace._id,
-        lat: parkingSpace.lat,
-        lng: parkingSpace.lng,
-        name: parkingSpace.name,
-        totalParking: parkingSpace.totalParking,
-        available: parkingSpace.totalParking - activeCount,
-      };
-    });
+
+    const result = await Promise.all(
+      dataFetchingResult.map(async (parkingSpace) => {
+        const activeCount = await this.getActiveReservations(
+          parkingSpace._id.toString(),
+        );
+        return {
+          id: parkingSpace._id,
+          lat: parkingSpace.lat,
+          lng: parkingSpace.lng,
+          name: parkingSpace.name,
+          totalParking: parkingSpace.totalParking,
+          available: parkingSpace.totalParking - activeCount,
+        };
+      }),
+    );
     return result;
   }
 
