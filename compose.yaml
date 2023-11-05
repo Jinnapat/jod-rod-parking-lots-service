@@ -7,6 +7,7 @@ services:
     environment:
       MONGO_URL: mongodb://root:example@mongo:27017
       REFEASH_DELAY_MS: 2000
+      RESERVATION_SERVICE_URL: http://localhost:9000
   mongo:
     image: mongo
     restart: always
