@@ -120,10 +120,13 @@ export class ParkingSpaceService {
   observeParkingSpaces() {
     const subject = new Subject();
 
-    setInterval(async () => {
-      const dataFetchingResult = await this.getParkingSpaces();
-      subject.next({ parkingSpaceList: dataFetchingResult });
-    }, this.configService.get('REFEASH_DELAY_MS'));
+    setInterval(
+      async () => {
+        const dataFetchingResult = await this.getParkingSpaces();
+        subject.next({ parkingSpaceList: dataFetchingResult });
+      },
+      parseInt(this.configService.get('REFEASH_DELAY_MS')),
+    );
 
     return subject.asObservable();
   }
